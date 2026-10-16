@@ -1,25 +1,22 @@
 # SentiKampus Backend
 
-Backend untuk aplikasi **SentiKampus**, yaitu layanan analisis sentimen
-teks yang dibangun menggunakan Python, FastAPI, dan scikit-learn.
-Backend menerima teks dari aplikasi Flutter, memprosesnya menggunakan
-model machine learning yang telah dilatih, lalu mengembalikan hasil
-prediksi melalui REST API.
+Backend untuk aplikasi **SentiKampus**, yaitu layanan analisis sentimen teks menggunakan Python, FastAPI, dan scikit-learn.
+
+Backend menerima komentar, memprosesnya menggunakan model machine learning yang telah dilatih, lalu mengembalikan hasil prediksi melalui REST API. API ini digunakan bersama oleh aplikasi web Streamlit, Gradio, dan aplikasi Flutter.
 
 ## Teknologi
 
--   **Python** --- bahasa pemrograman backend.
--   **FastAPI** --- framework untuk menyediakan REST API.
--   **scikit-learn** --- digunakan dalam proses pelatihan model machine
-    learning.
--   **Uvicorn** --- menjalankan server FastAPI.
--   **Swagger UI** --- menguji endpoint API melalui browser.
+- **Python** — bahasa pemrograman backend.
+- **FastAPI** — framework REST API.
+- **Uvicorn** — server ASGI untuk menjalankan FastAPI.
+- **scikit-learn** — pelatihan dan pemrosesan model machine learning.
+- **Streamlit** — antarmuka web untuk analisis sentimen.
+- **Gradio** — antarmuka web alternatif untuk analisis sentimen.
+- **HTTPX/Requests dan HTTP** — komunikasi antar-komponen sesuai kebutuhan dependensi aplikasi.
 
 ## Struktur Proyek
 
-Struktur utama backend berdasarkan implementasi proyek:
-
-``` text
+```text
 sentikampus_backend/
 ├── app/
 │   ├── main.py
@@ -29,170 +26,231 @@ sentikampus_backend/
 │   └── sentiment.pkl
 ├── training/
 │   └── train_model.py
-├── .venv/
-├── .gitignore
+├── web_demo/
+│   ├── streamlit_app.py
+│   └── gradio_app.py
 ├── requirements.txt
+├── .gitignore
 └── README.md
 ```
 
-> Catatan: sesuaikan nama file pada bagian `training/` dengan nama file
-> pelatihan yang benar-benar digunakan di repository jika berbeda.
+Folder `.venv/` dibuat secara lokal ketika menyiapkan virtual environment dan tidak perlu diunggah ke Git.
 
-## Persiapan
+## 1. Persiapan
 
-Pastikan Python 3, `pip`, dan Git sudah tersedia di sistem.
+Pastikan Python 3, `pip`, dan Git sudah terpasang.
 
 Clone repository:
 
-``` bash
+```bash
 git clone git@github.com:alhilalakbar/sentikampus_backend.git
 cd sentikampus_backend
 ```
 
-### 1. Membuat virtual environment
+Jika menggunakan HTTPS:
 
-Di Linux atau macOS:
+```bash
+git clone https://github.com/alhilalakbar/sentikampus_backend.git
+cd sentikampus_backend
+```
 
-``` bash
+## 2. Membuat Virtual Environment
+
+Di Linux atau Linux Mint:
+
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
+Jika perintah `venv` belum tersedia, pasang paket pendukung Python sesuai versi Python pada sistem.
+
 Di Windows PowerShell:
 
-``` powershell
+```powershell
 py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-### 2. Menginstal dependensi
+## 3. Menginstal Dependensi
 
-Dengan virtual environment aktif, jalankan:
+Dengan virtual environment aktif:
 
-``` bash
+```bash
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Jika scikit-learn belum tercantum dalam `requirements.txt`, tambahkan
-dependensi yang dibutuhkan proyek sebelum menjalankan pelatihan model.
+Pastikan dependensi untuk aplikasi web demo juga tersedia. Jika belum tercantum di `requirements.txt`, instal:
 
-## Model Machine Learning
+```bash
+pip install streamlit gradio requests
+```
 
-Model sentimen disimpan pada file `models/sentiment.pkl`. Skrip
-pelatihan berada di direktori `training/`.
+## 4. Memastikan Model Machine Learning
 
-Jalankan skrip pelatihan sesuai nama file yang tersedia di repository.
-Contoh jika file-nya bernama `train_model.py`:
+Model yang digunakan API berada di:
 
-``` bash
+```text
+models/sentiment.pkl
+```
+
+Skrip pelatihan model berada di:
+
+```text
+training/train_model.py
+```
+
+Jika file model belum tersedia, jalankan:
+
+```bash
 python training/train_model.py
 ```
 
-Pastikan proses pelatihan berhasil dan file model `models/sentiment.pkl`
-tersedia sebelum menjalankan API.
+Pastikan proses pelatihan berhasil sebelum menjalankan backend.
 
-## Menjalankan Backend
+Jika file model sudah tersedia dan dapat dimuat oleh aplikasi, pelatihan ulang tidak diperlukan setiap kali server dijalankan.
 
-Aktifkan virtual environment terlebih dahulu, lalu jalankan server dari
-direktori utama proyek:
+## 5. Menjalankan FastAPI
 
-``` bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+Pastikan terminal berada di direktori utama `sentikampus_backend` dan virtual environment sudah aktif.
+
+Jalankan:
+
+```bash
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Jika server berjalan, dokumentasi interaktif Swagger UI dapat dibuka
-melalui:
+Biarkan terminal ini tetap berjalan selama aplikasi frontend digunakan.
 
--   Komputer yang sama: `http://127.0.0.1:8000/docs`
--   Perangkat lain di jaringan yang sama:
-    `http://ALAMAT-IP-KOMPUTER:8000/docs`
+Dokumentasi API dapat dibuka melalui:
 
-Ganti `ALAMAT-IP-KOMPUTER` dengan alamat IP LAN komputer yang
-menjalankan backend.
+- Swagger UI: http://127.0.0.1:8000/docs
+- Health check: http://127.0.0.1:8000/health
 
-## Endpoint API
+## 6. Menguji Endpoint API
 
-  -----------------------------------------------------------------------
-  Metode                  Endpoint                Kegunaan
-  ----------------------- ----------------------- -----------------------
-  `GET`                   `/health`               Memeriksa status
-                                                  layanan API.
+Endpoint utama untuk analisis sentimen:
 
-  `POST`                  `/api/v1/predict`       Mengirim teks untuk
-                                                  mendapatkan prediksi
-                                                  sentimen.
-  -----------------------------------------------------------------------
+```text
+POST /api/v1/predict
+```
 
-### Menguji prediksi sentimen
+Buka Swagger UI, pilih `POST /api/v1/predict`, klik **Try it out**, lalu masukkan contoh berikut:
 
-1.  Jalankan backend.
-2.  Buka `/docs` pada browser.
-3.  Pilih endpoint `POST /api/v1/predict`.
-4.  Klik **Try it out**.
-5.  Masukkan request body sesuai skema yang ditampilkan Swagger.
-6.  Klik **Execute** dan periksa respons API.
+```json
+{
+  "text": "Pelayanan kampus sangat baik"
+}
+```
 
-Contoh teks yang dapat digunakan untuk pengujian:
+Klik **Execute** dan periksa respons yang berisi label sentimen dan skor prediksi.
 
--   `Pelayanan sangat cepat`
--   `Pelayanan sangat lambat`
--   `Petugas tidak ramah`
+Contoh komentar lain:
 
-Bentuk request body dan nama field mengikuti skema yang diterapkan pada
-endpoint di versi kode saat ini.
+- `Pelayanan sangat cepat`
+- `Pelayanan sangat lambat`
+- `Petugas tidak ramah`
 
-### Validasi input kosong
+Hasil prediksi dan skor bergantung pada model yang digunakan.
 
-Backend dalam implementasi tugas memvalidasi teks kosong atau teks yang
-hanya berisi spasi. Pengujian input tersebut diharapkan menghasilkan
-respons HTTP `400` sesuai implementasi yang dijelaskan dalam laporan.
+## 7. Menjalankan Streamlit
 
-## Integrasi dengan Aplikasi Flutter
+Buka terminal baru. Masuk ke direktori backend dan aktifkan virtual environment:
 
-Backend ini digunakan oleh aplikasi Flutter `sentikampus2` melalui
-layanan API di `lib/services/api_service.dart`.
+```bash
+cd ~/projects/project_kecerdasan_buatan/sentikampus_backend
+source .venv/bin/activate
+```
 
-Pastikan alamat API pada aplikasi Flutter sesuai dengan lingkungan yang
-digunakan:
+Jalankan aplikasi Streamlit:
 
--   **Flutter di komputer yang sama:** gunakan `http://127.0.0.1:8000`
-    jika berjalan pada host yang sama.
--   **Flutter pada emulator Android:** gunakan alamat host yang dapat
-    diakses dari emulator, umumnya `http://10.0.2.2:8000` untuk Android
-    Emulator standar.
--   **Flutter pada handphone fisik:** gunakan alamat IP LAN komputer,
-    misalnya `http://192.168.1.6:8000`, dan pastikan kedua perangkat
-    berada pada jaringan yang dapat saling menjangkau.
+```bash
+streamlit run web_demo/streamlit_app.py
+```
 
-Alamat IP pada contoh di atas hanya contoh. Gunakan alamat yang sesuai
-dengan jaringan saat ini.
+Streamlit biasanya tersedia melalui:
+
+http://localhost:8501
+
+Masukkan komentar, kemudian tekan tombol **Analisis**. Aplikasi akan mengirimkan komentar ke FastAPI dan menampilkan hasil prediksi.
+
+## 8. Menjalankan Gradio
+
+Buka terminal baru dan aktifkan virtual environment yang sama:
+
+```bash
+cd ~/projects/project_kecerdasan_buatan/sentikampus_backend
+source .venv/bin/activate
+```
+
+Jalankan:
+
+```bash
+python web_demo/gradio_app.py
+```
+
+Buka alamat lokal yang ditampilkan di terminal Gradio. Masukkan komentar dan tekan tombol submit untuk melihat hasil analisis sentimen.
+
+**Catatan:** FastAPI harus tetap berjalan saat Streamlit maupun Gradio digunakan.
+
+## 9. Integrasi dengan Flutter
+
+Frontend Flutter merupakan proyek terpisah dari repository backend.
+
+Untuk praktikum Pertemuan 4, proyek Flutter yang digunakan adalah `sentikampus_mobile`.
+
+Alamat API harus disesuaikan dengan perangkat yang menjalankan Flutter:
+
+- **Flutter di komputer yang sama:** `http://127.0.0.1:8000`
+- **Android Emulator standar:** `http://10.0.2.2:8000`
+- **Handphone fisik:** gunakan alamat IP LAN komputer yang menjalankan FastAPI, misalnya `http://192.168.1.6:8000`.
+
+Untuk handphone fisik, pastikan kedua perangkat dapat saling terhubung melalui jaringan dan firewall mengizinkan koneksi ke port 8000.
+
+## 10. Mengambil Perubahan Terbaru dari GitHub
+
+Jika repository sudah pernah di-clone:
+
+```bash
+cd sentikampus_backend
+git switch main
+git pull origin main
+```
+
+Jika belum memiliki repository lokal, gunakan perintah `git clone` pada bagian persiapan.
+
+`git pull` mengambil perubahan yang sudah diunggah ke repository remote. Dependensi baru tetap perlu dipasang secara lokal jika diperlukan.
 
 ## Troubleshooting
 
-**Server tidak dapat dijalankan** - Pastikan virtual environment sudah
-aktif. - Pastikan dependensi pada `requirements.txt` sudah terpasang. -
-Jalankan perintah Uvicorn dari direktori utama repository.
+### FastAPI gagal dijalankan
 
-**File model tidak ditemukan** - Pastikan `models/sentiment.pkl` sudah
-tersedia. - Jika file belum tersedia, jalankan skrip pelatihan model
-sesuai struktur repository.
+- Pastikan virtual environment aktif.
+- Pastikan dependensi sudah terpasang.
+- Jalankan Uvicorn dari direktori utama backend.
+- Pastikan port 8000 tidak sedang digunakan proses lain.
 
-**Flutter tidak dapat terhubung ke API** - Pastikan server FastAPI masih
-aktif. - Periksa kembali alamat API pada `api_service.dart`. - Untuk
-handphone fisik, jangan gunakan `127.0.0.1` untuk menunjuk ke komputer;
-gunakan IP LAN komputer. - Pastikan firewall dan jaringan mengizinkan
-koneksi ke port `8000`.
+### Model tidak ditemukan
 
-**Input kosong ditolak** - Periksa teks yang dikirim. API memvalidasi
-masukan kosong atau yang hanya berisi spasi.
+Pastikan file `models/sentiment.pkl` tersedia dan dapat dibaca oleh backend. Jika belum tersedia, jalankan skrip pelatihan model.
+
+### Streamlit atau Gradio tidak dapat menghubungi API
+
+- Pastikan FastAPI masih berjalan.
+- Pastikan alamat endpoint benar.
+- Pastikan dependensi frontend sudah terpasang.
+- Periksa pesan error pada terminal masing-masing aplikasi.
+
+### Flutter tidak dapat terhubung
+
+- Periksa alamat API di layanan Flutter.
+- Untuk handphone fisik, gunakan IP LAN komputer, bukan `127.0.0.1`.
+- Pastikan jaringan dan firewall mengizinkan koneksi ke port 8000.
 
 ## Repository
 
--   SSH: `git@github.com:alhilalakbar/sentikampus_backend.git`
--   HTTPS: `https://github.com/alhilalakbar/sentikampus_backend`
+- SSH: `git@github.com:alhilalakbar/sentikampus_backend.git`
+- HTTPS: https://github.com/alhilalakbar/sentikampus_backend
 
-------------------------------------------------------------------------
-
-Proyek ini dikembangkan sebagai bagian dari tugas mata kuliah Kecerdasan
-Buatan, Pertemuan 3.
+Proyek ini dikembangkan sebagai bagian dari tugas mata kuliah Kecerdasan Buatan, khususnya praktikum Pertemuan 3 dan Pertemuan 4.
